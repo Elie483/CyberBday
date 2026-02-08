@@ -1,10 +1,11 @@
 /* ============================================
-   Cyber Birthday Firewall
-   Professional UI | Mobile-first | Cyber aesthetic
-   Dark/Light theme | Neon accents | Smooth animations
+   Cyber Birthday Firewall – Styles
+   Mobile-first, WCAG-compliant (44px touch targets)
+   Design: Dark/Light theme, neon accents, clamp() typography,
+   safe-area support, Matrix BG, confetti, glitch effects
    ============================================ */
 
-/* --- Design tokens --- */
+/* --- Design tokens (CSS variables for theming) --- */
 :root {
   /* Dark theme (default) */
   --bg-dark: #060a0c;
@@ -276,6 +277,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 .terminal-body::-webkit-scrollbar { width: 5px; }
@@ -613,7 +615,7 @@ body {
   100% { opacity: 1; transform: translateY(0); }
 }
 
-/* --- Animations --- */
+/* --- Animations (smooth, portfolio-ready) --- */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

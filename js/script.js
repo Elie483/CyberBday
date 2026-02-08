@@ -1,19 +1,26 @@
 /**
  * Cyber Birthday Firewall / Security Awareness Demo
  * Vanilla JS | Client-side only | No tracking | No backend
- * Built by Elie Ishimwe
+ * Built by Elie Ishimwe – 9/Feb
+ *
+ * Design: Interactive terminal, Matrix BG, profile reveal, confetti,
+ * theme toggle, mute, Web Speech API greeting, cake easter egg.
  */
 
 'use strict';
 
-/* ========== Paths ========== */
+/* ========== Paths (assets folder structure) ========== */
 const PATHS = {
   audio: 'assets/audio',
   images: 'assets/images'
 };
 
-const TYPING_SPEED = 32;
+/* Typing: base speed ± random jitter for hacker-like feel */
+const TYPING_SPEED = 28;
+const TYPING_JITTER = 12;
 const LINE_DELAY = 280;
+const GLITCH_CHANCE = 0.04; /* ~4% chance of glitch char per keystroke */
+const GLITCH_CHARS = '!@#$%^&*[]{}|<>?';
 
 /* ========== Mode ========== */
 const DEMO_MODE = (() => {
@@ -59,6 +66,7 @@ function initTheme() {
   setTheme(currentTheme);
   if (btnTheme) {
     btnTheme.addEventListener('click', () => {
+      unlockAudio(); /* Unlock for typing clicks (mobile) */
       const next = currentTheme === 'dark' ? 'light' : 'dark';
       setTheme(next);
     });
@@ -121,11 +129,51 @@ function playBeepWithContext(ctx) {
   } catch (e) { /* ignore */ }
 }
 
+/* Typing click: soft feedback, respects mute */
+function playTypingClick() {
+  if (isMuted) return;
+  try {
+    if (!audioContext) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      audioContext = new Ctx();
+    }
+    const ctx = audioContext;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 1200;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.03, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.03);
+  } catch (e) { /* ignore */ }
+}
+
+/* ========== Easter Egg: Type "cake" for extra confetti ========== */
+let cakeBuffer = '';
+const CAKE_TIMEOUT = 3000; /* Grace period between keypresses */
+
+function initCakeEasterEgg() {
+  document.addEventListener('keydown', (e) => {
+    cakeBuffer = (cakeBuffer + e.key.toLowerCase()).slice(-4);
+    if (cakeBuffer === 'cake') {
+      cakeBuffer = '';
+      launchConfetti(true);
+    }
+  });
+  setInterval(() => {
+    if (cakeBuffer.length > 0) cakeBuffer = '';
+  }, CAKE_TIMEOUT);
+}
+
 function initMute() {
   if (!btnMute) return;
   const icon = btnMute.querySelector('.mute-icon');
   btnMute.addEventListener('click', () => {
-    unlockAudio();
+    unlockAudio(); /* Unlock for typing clicks (mobile) */
     isMuted = !isMuted;
     btnMute.classList.toggle('muted', isMuted);
     if (icon) icon.textContent = isMuted ? '🔇' : '🔊';
@@ -139,8 +187,8 @@ function initMute() {
   });
 }
 
-/* ========== Confetti (Access Granted) ========== */
-function launchConfetti() {
+/* ========== Confetti (Access Granted + Easter egg) ========== */
+function launchConfetti(extra = false) {
   const canvas = document.getElementById('confettiCanvas');
   if (!canvas) return;
 
@@ -151,7 +199,7 @@ function launchConfetti() {
   const ctx = canvas.getContext('2d');
   const colors = ['#00ff9c', '#88f5c8', '#5ee8c4', '#ffd93d', '#ff5a5a'];
   const particles = [];
-  const count = 80;
+  const count = extra ? 150 : 80; /* Easter egg: extra confetti when typing "cake" */
 
   for (let i = 0; i < count; i++) {
     particles.push({
@@ -264,13 +312,39 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/* Random delay: adds hacker-like variation */
+function randomDelay(base = TYPING_SPEED) {
+  const jitter = (Math.random() - 0.5) * 2 * TYPING_JITTER;
+  return Math.max(8, base + jitter);
+}
+
+/* Scroll terminal body to bottom (dynamic scroll for new content) */
+function scrollTerminalToBottom() {
+  const body = terminal?.querySelector('.terminal-body');
+  if (body) body.scrollTop = body.scrollHeight;
+}
+
+/* Hacker-like typing: random delays, occasional glitch chars, typing click */
 async function appendTyped(element, text, speed = TYPING_SPEED) {
   if (!element) return;
   const prefix = element.textContent ? '\n' : '';
   const full = prefix + text;
   for (let i = 0; i < full.length; i++) {
-    element.textContent += full[i];
-    await sleep(speed);
+    const char = full[i];
+    let displayChar = char;
+    /* Occasionally show glitch char then correct (hacker-like) */
+    if (char !== '\n' && char !== ' ' && Math.random() < GLITCH_CHANCE) {
+      displayChar = GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+      element.textContent += displayChar;
+      playTypingClick();
+      await sleep(randomDelay(speed));
+      element.textContent = element.textContent.slice(0, -1) + char;
+    } else {
+      element.textContent += displayChar;
+      if (char !== '\n' && char !== ' ') playTypingClick(); /* Skip click for spaces/newlines */
+    }
+    scrollTerminalToBottom();
+    await sleep(randomDelay(speed));
   }
 }
 
@@ -353,20 +427,34 @@ async function runScan() {
   await runAccessGranted();
 }
 
+/* ========== Web Speech API: Optional greeting on Access Granted ========== */
+function speakGreeting() {
+  try {
+    const Speech = window.speechSynthesis;
+    if (!Speech) return;
+    const u = new SpeechSynthesisUtterance('Happy Birthday Elie Ishimwe! Stay curious and secure.');
+    u.rate = 0.9;
+    u.pitch = 1;
+    Speech.speak(u);
+  } catch (e) { /* ignore */ }
+}
+
 /* ========== Flow: Access Granted ========== */
 async function runAccessGranted() {
   await clearTerminal();
 
+  /* Birthday message embedded in access flow */
   await appendTyped(terminalOutput, '> ✅ ACCESS GRANTED');
   await sleep(200);
 
   playSuccessBeep();
   launchConfetti();
+  speakGreeting(); /* Optional Web Speech API */
   if (terminal) terminal.classList.add('glitch');
   setTimeout(() => terminal?.classList.remove('glitch'), 400);
 
   await sleep(LINE_DELAY);
-  await appendTyped(terminalOutput, '> Welcome, human 🎉');
+  await appendTyped(terminalOutput, '> Happy Birthday Elie Ishimwe – Access Granted 🎉');
   await sleep(LINE_DELAY);
 
   const info = getClientInfo();
@@ -448,8 +536,8 @@ function initProfileImage() {
   if (!img) return;
 
   const sources = [
-    `${PATHS.images}/profile.jpg`,
     `${PATHS.images}/ishiel.HEIC`,
+    `${PATHS.images}/profile.jpg`,
     `${PATHS.images}/elie.jpeg`,
     `${PATHS.images}/123.jpg`,
     `${PATHS.images}/123.HEIC`
@@ -474,6 +562,7 @@ async function init() {
   initMatrix();
   initProfileImage();
   initMute();
+  initCakeEasterEgg();
 
   if (DEMO_MODE === 'professional') {
     document.title = 'Security Awareness Demo | Elie Ishimwe';
@@ -484,7 +573,7 @@ async function init() {
   }
 
   btnAccess.addEventListener('click', () => {
-    unlockAudio();
+    unlockAudio(); /* Unlock for typing clicks + beep */
     if (!btnAccess.disabled) runScan();
   });
 

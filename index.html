@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!--
+  Cyber Birthday Firewall – Portfolio-worthy security awareness demo
+  Single-page, client-side only, no tracking/cookies/backend.
+  UX: Landing → Request Access → Boot/Scan → Access Granted → Profile + Confetti + Tips
+  Features: Matrix BG, terminal typing, theme toggle, mute, Web Speech API, cake easter egg.
+-->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -53,8 +59,7 @@
           <span class="terminal-title">birthday_firewall.exe</span>
         </div>
         <div class="terminal-body">
-          <pre class="terminal-output" id="terminalOutput"></pre>
-          <span class="cursor" id="cursor">▋</span>
+          <pre class="terminal-output"><span id="terminalOutput"></span><span class="cursor" id="cursor">▋</span></pre>
         </div>
       </div>
 
@@ -74,7 +79,7 @@
     <!-- Profile: Circle with neon glow, smooth fade-in -->
     <section class="profile-section" id="profileSection" aria-label="Profile">
       <div class="profile-image-wrap profile-glow">
-        <img src="assets/images/profile.jpg" alt="Elie Ishimwe" class="profile-image" id="profileImage">
+        <img src="assets/images/ishiel.HEIC" alt="Elie Ishimwe" class="profile-image" id="profileImage">
       </div>
     </section>
 

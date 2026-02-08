@@ -9,14 +9,16 @@ A mobile-first, cyber-themed birthday web app with a security awareness twist. B
 
 ## Features
 
-- Terminal-style typing effect with blinking cursor
-- Matrix-style falling characters background
-- Confetti celebration on access granted
-- Success beep with mute toggle (M key)
-- Cyber tips carousel (educational)
-- Profile image reveal
+- Terminal-style typing effect with blinking cursor, random delays, glitch chars
+- Matrix-style falling characters background (theme-aware)
+- Confetti celebration on access granted (+ Easter egg: type "cake")
+- Success beep + typing clicks with mute toggle (M key)
+- Web Speech API greeting: "Happy Birthday Elie Ishimwe! Stay curious and secure."
+- Cyber tips carousel in footer (educational)
+- Profile image reveal with neon glow
+- Theme toggle (Dark/Light) with localStorage persistence
 - Two modes: Birthday (personal) and Professional (client-facing)
-- Fully responsive, viewport-optimized
+- Fully responsive, WCAG-compliant (44px touch targets)
 - Mobile audio support (unlocks on first tap)
 
 ## Tech Stack
@@ -69,8 +71,7 @@ Open `http://localhost:8080`
 
 ## Image Notes
 
-- **HEIC** (ishiel.HEIC): Works in Safari (iOS/macOS). Other browsers fall back to elie.jpeg
-- For best compatibility, add `profile.jpg` or use `elie.jpeg` in `assets/images/`
+- **Primary:** ishiel.HEIC (Safari). Fallbacks: profile.jpg, elie.jpeg, 123.HEIC
 
 ## Privacy
 
