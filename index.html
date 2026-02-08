@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Cyber Birthday Firewall - A playful, secure terminal experience by Elie Ishimwe">
+  <meta name="theme-color" content="#0a0e12">
+  <title>Cyber Birthday Firewall | Elie Ishimwe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Matrix falling characters - behind content -->
+  <canvas id="matrix" class="matrix-bg" aria-hidden="true"></canvas>
+
+  <!-- Confetti overlay - triggered on access granted -->
+  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+  <!-- Mute toggle - top right -->
+  <button class="btn-mute" id="btnMute" type="button" title="Toggle sound" aria-label="Toggle sound">
+    <span class="mute-icon">🔊</span>
+  </button>
+
+  <div class="app">
+    <main class="terminal-container">
+      <div class="terminal" id="terminal">
+        <div class="terminal-header">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+          <span class="terminal-title">birthday_firewall.exe</span>
+        </div>
+        <div class="terminal-body">
+          <pre class="terminal-output" id="terminalOutput"></pre>
+          <span class="cursor" id="cursor">▋</span>
+        </div>
+      </div>
+
+      <button class="btn-access" id="btnAccess" type="button">
+        ▶️ Request Access
+      </button>
+    </main>
+
+    <!-- Profile image - fades in during Birthday Reveal -->
+    <div class="profile-section" id="profileSection">
+      <div class="profile-image-wrap">
+        <img src="ishiel.HEIC" alt="Ishiel" class="profile-image" id="profileImage">
+      </div>
+    </div>
+
+    <!-- About this demo (professional mode) -->
+    <div class="about-demo" id="aboutDemo">
+      <h3 class="about-title">About this demo</h3>
+      <p class="about-text">This is an educational security awareness tool. It demonstrates how curiosity and trust can be exploited in social engineering—and what harmless information a webpage can access. No data is collected or stored. Built for training and awareness.</p>
+    </div>
+
+    <!-- Cyber Tips Carousel -->
+    <div class="cyber-tips" id="cyberTips">
+      <p class="tip-text" id="tipText"></p>
+    </div>
+
+    <footer class="footer" id="footer">
+      <pre class="footer-output" id="footerOutput"></pre>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
