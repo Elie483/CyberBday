@@ -1,63 +1,131 @@
 /**
  * Cyber Birthday Firewall / Security Awareness Demo
- * Vanilla JS | No tracking | No backend
+ * Vanilla JS | Client-side only | No tracking | No backend
  * Built by Elie Ishimwe
  */
 
 'use strict';
 
+/* ========== Paths ========== */
+const PATHS = {
+  audio: 'assets/audio',
+  images: 'assets/images'
+};
+
 const TYPING_SPEED = 32;
 const LINE_DELAY = 280;
 
-/* ========== Mode: 'birthday' (personal) | 'professional' (client-facing) ========== */
+/* ========== Mode ========== */
 const DEMO_MODE = (() => {
   const params = new URLSearchParams(window.location.search);
   return params.get('mode') === 'professional' ? 'professional' : 'birthday';
 })();
 
+/* ========== DOM refs ========== */
 const terminalOutput = document.getElementById('terminalOutput');
 const btnAccess = document.getElementById('btnAccess');
 const profileSection = document.getElementById('profileSection');
 const footerOutput = document.getElementById('footerOutput');
 const terminal = document.getElementById('terminal');
 const btnMute = document.getElementById('btnMute');
+const btnTheme = document.getElementById('btnTheme');
 const tipText = document.getElementById('tipText');
 const cyberTips = document.getElementById('cyberTips');
 const aboutDemo = document.getElementById('aboutDemo');
+const ethicalBadge = document.getElementById('ethicalBadge');
 const terminalTitle = document.querySelector('.terminal-title');
+const yourInfo = document.getElementById('yourInfo');
+const yourInfoContent = document.getElementById('yourInfoContent');
+const themeIcon = document.querySelector('.theme-icon');
+const themeColorMeta = document.getElementById('themeColor');
 
-/* ========== Sound (Beep) + Mute ========== */
+if (!terminalOutput || !btnAccess) {
+  console.error('Cyber Birthday Firewall: Required DOM elements not found');
+}
 
+/* ========== Theme Toggle (Dark/Light) ========== */
+const THEMES = { dark: '🌙', light: '☀️' };
+let currentTheme = localStorage.getItem('cyber-firewall-theme') || 'dark';
+
+function setTheme(theme) {
+  currentTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  if (themeIcon) themeIcon.textContent = theme === 'dark' ? THEMES.light : THEMES.dark;
+  if (themeColorMeta) themeColorMeta.content = theme === 'dark' ? '#060a0c' : '#e8f4f0';
+  localStorage.setItem('cyber-firewall-theme', theme);
+}
+
+function initTheme() {
+  setTheme(currentTheme);
+  if (btnTheme) {
+    btnTheme.addEventListener('click', () => {
+      const next = currentTheme === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+    });
+  }
+}
+
+/* ========== Sound + Mute ========== */
 let isMuted = false;
+let audioContext = null;
+
+function unlockAudio() {
+  if (audioContext) return;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    audioContext = new Ctx();
+    if (audioContext.state === 'suspended') audioContext.resume();
+    const buf = audioContext.createBuffer(1, 1, 22050);
+    const src = audioContext.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioContext.destination);
+    src.start(0);
+  } catch (e) { /* ignore */ }
+}
 
 function playSuccessBeep() {
   if (isMuted) return;
   try {
-    const beep = new Audio('success-beep.mp3');
+    const beep = new Audio(`${PATHS.audio}/success-beep.mp3`);
     beep.volume = 0.5;
-    beep.play().catch(() => {
-      /* Fallback to Web Audio if file not found */
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 880;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.2);
-    });
+    beep.play().catch(() => playBeepWithWebAudio());
   } catch (e) {
-    /* Sound not supported */
+    playBeepWithWebAudio();
   }
+}
+
+function playBeepWithWebAudio() {
+  try {
+    const ctx = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(() => playBeepWithContext(ctx)).catch(() => {});
+    } else {
+      playBeepWithContext(ctx);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function playBeepWithContext(ctx) {
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.2);
+  } catch (e) { /* ignore */ }
 }
 
 function initMute() {
   if (!btnMute) return;
   const icon = btnMute.querySelector('.mute-icon');
   btnMute.addEventListener('click', () => {
+    unlockAudio();
     isMuted = !isMuted;
     btnMute.classList.toggle('muted', isMuted);
     if (icon) icon.textContent = isMuted ? '🔇' : '🔊';
@@ -71,8 +139,7 @@ function initMute() {
   });
 }
 
-/* ========== Confetti ========== */
-
+/* ========== Confetti (Access Granted) ========== */
 function launchConfetti() {
   const canvas = document.getElementById('confettiCanvas');
   if (!canvas) return;
@@ -82,7 +149,7 @@ function launchConfetti() {
   canvas.height = window.innerHeight;
 
   const ctx = canvas.getContext('2d');
-  const colors = ['#00ff9c', '#6eebb8', '#5ee8c4', '#ffd93d', '#ff5a5a'];
+  const colors = ['#00ff9c', '#88f5c8', '#5ee8c4', '#ffd93d', '#ff5a5a'];
   const particles = [];
   const count = 80;
 
@@ -105,7 +172,6 @@ function launchConfetti() {
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     frame++;
-
     for (const p of particles) {
       p.x += p.vx;
       p.y += p.vy;
@@ -113,7 +179,6 @@ function launchConfetti() {
       p.vx *= p.decay;
       p.vy *= p.decay;
       p.rotation += 5;
-
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate((p.rotation * Math.PI) / 180);
@@ -122,47 +187,44 @@ function launchConfetti() {
       ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
       ctx.restore();
     }
-
-    if (frame < maxFrames) {
-      requestAnimationFrame(animate);
-    } else {
-      canvas.classList.remove('active');
-    }
+    if (frame < maxFrames) requestAnimationFrame(animate);
+    else canvas.classList.remove('active');
   }
-
   animate();
 }
 
 /* ========== Matrix Background ========== */
-
 function initMatrix() {
   const canvas = document.getElementById('matrix');
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()*&^%';
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()';
   const fontSize = 16;
   let drops = [];
+
+  function getColor() {
+    return document.documentElement.getAttribute('data-theme') === 'light'
+      ? '#006b47'
+      : '#0F0';
+  }
 
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const columns = canvas.width / fontSize;
-    drops = Array(Math.floor(columns)).fill(1);
+    drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
   }
 
   function draw() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#0F0';
+    ctx.fillStyle = getColor();
     ctx.font = fontSize + 'px monospace';
 
     for (let i = 0; i < drops.length; i++) {
       const text = letters[Math.floor(Math.random() * letters.length)];
       ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
-      }
+      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
       drops[i]++;
     }
   }
@@ -172,13 +234,12 @@ function initMatrix() {
   setInterval(draw, 50);
 }
 
-/* ========== Cyber Tips Carousel ========== */
-
+/* ========== Cyber Tips Carousel (in footer) ========== */
 const CYBER_TIPS = [
-  '💡 Cyber Tip: Use strong, unique passwords',
-  '💡 Cyber Tip: Enable multi-factor authentication',
-  '💡 Cyber Tip: Think before clicking unknown links',
-  '💡 Cyber Tip: Your curiosity is a superpower 🛡️'
+  '💡 Use strong, unique passwords for each account',
+  '💡 Enable multi-factor authentication (MFA)',
+  '💡 Think before clicking unknown links',
+  '💡 Your curiosity is a superpower—stay secure 🛡️'
 ];
 
 let tipIndex = 0;
@@ -193,18 +254,18 @@ function showNextTip() {
 }
 
 function startTipsCarousel() {
-  cyberTips.classList.add('visible');
+  if (cyberTips) cyberTips.classList.add('visible');
   showNextTip();
-  setInterval(showNextTip, 4000);
+  setInterval(showNextTip, 4500);
 }
 
 /* ========== Utilities ========== */
-
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function appendTyped(element, text, speed = TYPING_SPEED) {
+  if (!element) return;
   const prefix = element.textContent ? '\n' : '';
   const full = prefix + text;
   for (let i = 0; i < full.length; i++) {
@@ -214,7 +275,7 @@ async function appendTyped(element, text, speed = TYPING_SPEED) {
 }
 
 async function clearTerminal() {
-  terminalOutput.textContent = '';
+  if (terminalOutput) terminalOutput.textContent = '';
   await sleep(220);
 }
 
@@ -233,26 +294,29 @@ function getClientInfo() {
   else if (ua.includes('Firefox')) browser = 'Firefox';
   else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
 
-  return { device: os, browser, time: new Date().toLocaleString() };
+  return {
+    device: os,
+    browser,
+    time: new Date().toLocaleString(),
+    screen: `${screen.width}×${screen.height}`
+  };
 }
 
-/* ========== Flow: Landing (Terminal Boot) ========== */
-
+/* ========== Flow: Landing ========== */
 async function runLanding() {
   if (terminalTitle) {
-    terminalTitle.textContent = DEMO_MODE === 'professional' ? 'security_awareness_demo.exe' : 'birthday_firewall.exe';
+    terminalTitle.textContent = DEMO_MODE === 'professional'
+      ? 'security_awareness_demo.exe'
+      : 'birthday_firewall.exe';
   }
   if (DEMO_MODE === 'professional' && aboutDemo) aboutDemo.classList.add('visible');
 
   await appendTyped(terminalOutput, '> 🔐 Booting secure system...');
   await sleep(LINE_DELAY);
-
   await appendTyped(terminalOutput, '> Verifying access channel...');
   await sleep(LINE_DELAY);
-
   await appendTyped(terminalOutput, '> Status: LOCKED');
   await sleep(LINE_DELAY);
-
   if (DEMO_MODE === 'birthday') {
     await appendTyped(terminalOutput, '> Date: 9/Feb');
   } else {
@@ -260,13 +324,12 @@ async function runLanding() {
   }
   await sleep(450);
 
-  btnAccess.classList.add('visible');
+  if (btnAccess) btnAccess.classList.add('visible');
 }
 
-/* ========== Flow: Scan Sequence ========== */
-
+/* ========== Flow: Scan ========== */
 async function runScan() {
-  btnAccess.disabled = true;
+  if (btnAccess) btnAccess.disabled = true;
   await clearTerminal();
 
   if (DEMO_MODE === 'professional') {
@@ -287,42 +350,61 @@ async function runScan() {
     await appendTyped(terminalOutput, '> Threat level: LOW 😎', 26);
   }
   await sleep(550);
-
   await runAccessGranted();
 }
 
-/* ========== Flow: Access Granted (Confetti + Beep + Glitch) ========== */
-
+/* ========== Flow: Access Granted ========== */
 async function runAccessGranted() {
   await clearTerminal();
 
   await appendTyped(terminalOutput, '> ✅ ACCESS GRANTED');
   await sleep(200);
 
-  /* Trigger celebrations */
   playSuccessBeep();
   launchConfetti();
   if (terminal) terminal.classList.add('glitch');
   setTimeout(() => terminal?.classList.remove('glitch'), 400);
 
   await sleep(LINE_DELAY);
-
   await appendTyped(terminalOutput, '> Welcome, human 🎉');
   await sleep(LINE_DELAY);
 
   const info = getClientInfo();
-  await appendTyped(terminalOutput, `> Device info visible: ${info.device} / ${info.browser} / ${info.time}`);
+  await appendTyped(terminalOutput, '\n> Your info visible to this page:');
   await sleep(LINE_DELAY);
+
+  if (yourInfo && yourInfoContent) {
+    yourInfoContent.textContent = [
+      `Device: ${info.device}`,
+      `Browser: ${info.browser}`,
+      `Screen: ${info.screen}`,
+      `Time: ${info.time}`
+    ].join('\n');
+    yourInfo.classList.add('visible');
+  } else {
+    await appendTyped(terminalOutput, `>   Device: ${info.device}`);
+    await sleep(LINE_DELAY);
+    await appendTyped(terminalOutput, `>   Browser: ${info.browser}`);
+    await sleep(LINE_DELAY);
+    await appendTyped(terminalOutput, `>   Screen: ${info.screen}`);
+    await sleep(LINE_DELAY);
+    await appendTyped(terminalOutput, `>   Time: ${info.time}`);
+    await sleep(LINE_DELAY);
+  }
 
   await appendTyped(terminalOutput, '> (No personal data collected – ethical demo 👀)');
   await sleep(LINE_DELAY);
-  await sleep(500);
 
+  /* Show ethical badge prominently */
+  if (ethicalBadge) ethicalBadge.classList.add('visible');
+  await sleep(300);
+
+  startTipsCarousel();
+  await sleep(400);
   await runBirthdayReveal();
 }
 
-/* ========== Flow: Birthday Reveal (9/Feb + Profile) ========== */
-
+/* ========== Flow: Birthday Reveal ========== */
 async function runBirthdayReveal() {
   if (DEMO_MODE === 'professional') {
     await appendTyped(terminalOutput, '\n> You experienced a simulated access flow.');
@@ -331,8 +413,8 @@ async function runBirthdayReveal() {
     await sleep(LINE_DELAY);
     await appendTyped(terminalOutput, '> Stay curious. Stay secure. 🔐');
   } else {
-    profileSection.classList.add('visible');
-    await sleep(350);
+    if (profileSection) profileSection.classList.add('visible');
+    await sleep(400);
     await appendTyped(terminalOutput, '\n> 🎂 HAPPY BIRTHDAY TO ELIE ISHIMWE!');
     await sleep(LINE_DELAY);
     await appendTyped(terminalOutput, '> You accessed the Cyber Birthday Firewall.');
@@ -347,29 +429,31 @@ async function runBirthdayReveal() {
   await runFooter();
 }
 
-/* ========== Flow: Footer + Share + Tips ========== */
-
+/* ========== Flow: Footer ========== */
 async function runFooter() {
+  if (!footerOutput) return;
   const lines = DEMO_MODE === 'professional'
     ? ['Built by Elie Ishimwe | Lead Cybersecurity Consultant', 'Educational demo | No data collected']
-    : ['Built by Elie Ishimwe', 'Cybersecurity Enthusiast | Blue Team 🛡️', 'Educational demo, no data collected'];
+    : ['Built by Elie Ishimwe', 'Cybersecurity Enthusiast | Blue Team 🛡️', 'Educational demo · No data collected'];
 
   for (const line of lines) {
     await appendTyped(footerOutput, footerOutput.textContent ? '\n' + line : line);
     await sleep(LINE_DELAY);
   }
-
-  /* Show Cyber Tips after footer */
-  startTipsCarousel();
 }
 
 /* ========== Profile Image Fallback ========== */
-
 function initProfileImage() {
   const img = document.getElementById('profileImage');
   if (!img) return;
 
-  const sources = ['ishiel.HEIC', 'elie.jpeg', '123.jpg', '123.HEIC', 'profile.jpg'];
+  const sources = [
+    `${PATHS.images}/profile.jpg`,
+    `${PATHS.images}/ishiel.HEIC`,
+    `${PATHS.images}/elie.jpeg`,
+    `${PATHS.images}/123.jpg`,
+    `${PATHS.images}/123.HEIC`
+  ];
   let idx = 0;
 
   img.onerror = () => {
@@ -383,19 +467,28 @@ function initProfileImage() {
 }
 
 /* ========== Init ========== */
-
 async function init() {
-  if (DEMO_MODE === 'professional') {
-    document.title = 'Security Awareness Demo | Elie Ishimwe';
-  }
+  if (!terminalOutput || !btnAccess) return;
 
+  initTheme();
   initMatrix();
   initProfileImage();
   initMute();
 
+  if (DEMO_MODE === 'professional') {
+    document.title = 'Security Awareness Demo | Elie Ishimwe';
+    const appName = document.getElementById('appName');
+    const appTagline = document.getElementById('appTagline');
+    if (appName) appName.textContent = 'Security Awareness';
+    if (appTagline) appTagline.textContent = 'Educational Demo';
+  }
+
   btnAccess.addEventListener('click', () => {
+    unlockAudio();
     if (!btnAccess.disabled) runScan();
   });
+
+  btnAccess.addEventListener('touchend', () => unlockAudio(), { passive: true });
 
   await runLanding();
 }

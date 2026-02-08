@@ -3,26 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="Cyber Birthday Firewall - A playful, secure terminal experience by Elie Ishimwe">
-  <meta name="theme-color" content="#0a0e12">
+  <meta name="description" content="Cyber Birthday Firewall - Educational security awareness demo by Elie Ishimwe. Client-side only. No tracking. No data collected.">
+  <meta name="theme-color" content="#0a0e12" id="themeColor">
+  <meta name="author" content="Elie Ishimwe">
   <title>Cyber Birthday Firewall | Elie Ishimwe</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Prevent theme flash on load -->
+  <script>
+    (function(){
+      var t = localStorage.getItem('cyber-firewall-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
 </head>
 <body>
-  <!-- Matrix falling characters - behind content -->
+  <!-- Matrix falling characters - cyber aesthetic, behind content -->
   <canvas id="matrix" class="matrix-bg" aria-hidden="true"></canvas>
 
-  <!-- Confetti overlay - triggered on access granted -->
+  <!-- Confetti overlay - triggered on Access Granted -->
   <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
 
-  <!-- Mute toggle - top right -->
-  <button class="btn-mute" id="btnMute" type="button" title="Toggle sound" aria-label="Toggle sound">
-    <span class="mute-icon">🔊</span>
-  </button>
+  <!-- Top bar: Theme toggle + Mute (44px min touch targets for mobile) -->
+  <div class="top-bar">
+    <button class="btn-icon-top btn-theme" id="btnTheme" type="button" title="Toggle theme" aria-label="Toggle light/dark theme">
+      <span class="theme-icon">🌙</span>
+    </button>
+    <button class="btn-icon-top btn-mute" id="btnMute" type="button" title="Toggle sound" aria-label="Toggle sound">
+      <span class="mute-icon">🔊</span>
+    </button>
+  </div>
 
   <div class="app">
+    <!-- Header: Clean branding with neon accent -->
+    <header class="app-header">
+      <div class="app-brand">
+        <span class="app-logo" aria-hidden="true">◈</span>
+        <h1 class="app-name" id="appName">Cyber Birthday Firewall</h1>
+      </div>
+      <p class="app-tagline" id="appTagline">Security Awareness Demo · 9/Feb</p>
+    </header>
+
+    <!-- Main: Terminal card with glow effect -->
     <main class="terminal-container">
-      <div class="terminal" id="terminal">
+      <div class="terminal terminal-glow" id="terminal">
         <div class="terminal-header">
           <span class="terminal-dot red"></span>
           <span class="terminal-dot yellow"></span>
@@ -35,34 +58,68 @@
         </div>
       </div>
 
+      <!-- CTA: Large tap-friendly button (48px+ height) -->
       <button class="btn-access" id="btnAccess" type="button">
-        ▶️ Request Access
+        <span class="btn-icon">▶</span>
+        <span class="btn-label">Request Access</span>
       </button>
     </main>
 
-    <!-- Profile image - fades in during Birthday Reveal -->
-    <div class="profile-section" id="profileSection">
-      <div class="profile-image-wrap">
-        <img src="ishiel.HEIC" alt="Ishiel" class="profile-image" id="profileImage">
+    <!-- Session info: Fixed at bottom when visible -->
+    <section class="your-info" id="yourInfo" aria-label="Session fingerprint">
+      <h4 class="your-info-label">Session Fingerprint</h4>
+      <div class="your-info-content" id="yourInfoContent"></div>
+    </section>
+
+    <!-- Profile: Circle with neon glow, smooth fade-in -->
+    <section class="profile-section" id="profileSection" aria-label="Profile">
+      <div class="profile-image-wrap profile-glow">
+        <img src="assets/images/profile.jpg" alt="Elie Ishimwe" class="profile-image" id="profileImage">
       </div>
+    </section>
+
+    <!-- Ethical badge: Prominent "No data collected" -->
+    <div class="ethical-badge" id="ethicalBadge">
+      <span class="ethical-icon">🔒</span>
+      <span>Client-side only · No personal data collected</span>
     </div>
 
-    <!-- About this demo (professional mode) -->
-    <div class="about-demo" id="aboutDemo">
-      <h3 class="about-title">About this demo</h3>
-      <p class="about-text">This is an educational security awareness tool. It demonstrates how curiosity and trust can be exploited in social engineering—and what harmless information a webpage can access. No data is collected or stored. Built for training and awareness.</p>
-    </div>
+    <!-- About: Educational disclaimer and features -->
+    <section class="about-demo" id="aboutDemo" aria-label="About">
+      <div class="about-container">
+        <h2 class="about-title">About This Demo</h2>
+        <p class="about-text">
+          The <strong>Cyber Birthday Firewall</strong> is a <em>client-side only</em> educational demo, built for
+          <strong>security awareness</strong> and portfolio showcase. It demonstrates ethical cybersecurity principles,
+          interactive UI, and playful cyber-themed animations.
+        </p>
 
-    <!-- Cyber Tips Carousel -->
-    <div class="cyber-tips" id="cyberTips">
-      <p class="tip-text" id="tipText"></p>
-    </div>
+        <h3 class="about-subtitle">Why This Demo Works</h3>
+        <ul class="about-list">
+          <li>Professional & ethical design, no backend or tracking.</li>
+          <li>Interactive, engaging, and visually impressive for portfolio or workshops.</li>
+          <li>Shows security awareness concepts in a playful, non-technical way.</li>
+          <li>Blue-team thinking: demonstrates understanding of what websites can see and ethical transparency.</li>
+        </ul>
 
+        <p class="about-note">
+          Built by <strong>Elie Ishimwe</strong> – February 9.<br>
+          Educational, ethical, and client-side only. Shareable for workshops, portfolio, or fun cyber birthday greetings.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer: Credits + Cyber tips carousel -->
     <footer class="footer" id="footer">
-      <pre class="footer-output" id="footerOutput"></pre>
+      <div class="footer-main">
+        <pre class="footer-output" id="footerOutput"></pre>
+      </div>
+      <div class="cyber-tips" id="cyberTips" aria-label="Security tips">
+        <p class="tip-text" id="tipText"></p>
+      </div>
     </footer>
   </div>
 
-  <script src="script.js"></script>
+  <script src="js/script.js" defer></script>
 </body>
 </html>
