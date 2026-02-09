@@ -136,20 +136,38 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   max-width: 90%;
-  font-size: clamp(0.75rem, 2.5vw, 1.1rem);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #fff;
-  -webkit-text-fill-color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
   text-align: center;
-  white-space: nowrap;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
   pointer-events: none;
   z-index: 2;
+}
+
+.video-birthday-text .text-sticker {
+  display: inline-block;
+  padding: 0.4em 0.9em;
+  font-size: clamp(0.75rem, 2.5vw, 1.1rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(255, 90, 90, 0.9) 0%, rgba(255, 150, 100, 0.9) 100%);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  transform: rotate(-2deg);
+}
+
+.video-birthday-text .sticker-emoji {
+  font-size: 1.6em;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transform: rotate(4deg);
 }
 
 .video-birthday-text.visible {
