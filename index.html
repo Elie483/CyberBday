@@ -29,6 +29,18 @@
   <!-- Confetti overlay - triggered on Access Granted -->
   <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
 
+  <!-- Video intro overlay - plays after Access Granted -->
+  <div class="video-intro-overlay" id="videoIntroOverlay" aria-hidden="true">
+    <video class="video-intro" id="videoIntro" playsinline muted>
+      <source src="assets/video.mp4" type="video/mp4">
+      <source src="assets/video.MOV" type="video/quicktime">
+    </video>
+    <p class="video-birthday-text" id="videoBirthdayText">Happy Birthday, Elie! 🎂</p>
+    <p class="video-fallback">Video couldn't load in this browser.</p>
+    <button class="video-unmute" id="videoUnmute" type="button" aria-label="Unmute video" title="Unmute">🔇</button>
+    <button class="video-skip" id="videoSkip" type="button" aria-label="Skip intro">Skip</button>
+  </div>
+
   <!-- Top bar: Theme toggle + Mute (44px min touch targets for mobile) -->
   <div class="top-bar">
     <button class="btn-icon-top btn-theme" id="btnTheme" type="button" title="Toggle theme" aria-label="Toggle light/dark theme">

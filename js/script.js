@@ -12,7 +12,8 @@
 /* ========== Paths (assets folder structure) ========== */
 const PATHS = {
   audio: 'assets/audio',
-  images: 'assets/images'
+  images: 'assets/images',
+  video: 'assets/video.MOV'
 };
 
 /* Typing: base speed ± random jitter for hacker-like feel */
@@ -45,6 +46,10 @@ const yourInfo = document.getElementById('yourInfo');
 const yourInfoContent = document.getElementById('yourInfoContent');
 const themeIcon = document.querySelector('.theme-icon');
 const themeColorMeta = document.getElementById('themeColor');
+const videoIntroOverlay = document.getElementById('videoIntroOverlay');
+const videoIntro = document.getElementById('videoIntro');
+const videoSkip = document.getElementById('videoSkip');
+const videoUnmute = document.getElementById('videoUnmute');
 
 if (!terminalOutput || !btnAccess) {
   console.error('Cyber Birthday Firewall: Required DOM elements not found');
@@ -439,6 +444,72 @@ function speakGreeting() {
   } catch (e) { /* ignore */ }
 }
 
+/* ========== Video intro – plays immediately on click (enables autoplay with sound) ========== */
+function playVideoIntroSync() {
+  return new Promise((resolve) => {
+    if (!videoIntroOverlay || !videoIntro) {
+      resolve();
+      return;
+    }
+    const birthdayText = videoIntroOverlay.querySelector('.video-birthday-text');
+    const finish = () => {
+      videoIntroOverlay.classList.remove('active');
+      videoIntro.pause();
+      videoIntro.currentTime = 0;
+      fallbackMsg?.classList.remove('visible');
+      birthdayText?.classList.remove('visible');
+      videoIntro.classList.remove('hidden');
+      videoIntro.removeEventListener('timeupdate', onTimeUpdate);
+      resolve();
+    };
+    const SECONDS_AFTER_START = 2;
+    const DISPLAY_DURATION_MS = 2000;
+    let birthdayShown = false;
+    const onTimeUpdate = () => {
+      if (birthdayShown) return;
+      if (videoIntro.currentTime >= SECONDS_AFTER_START) {
+        birthdayShown = true;
+        videoIntro.removeEventListener('timeupdate', onTimeUpdate);
+        birthdayText?.classList.add('visible');
+        setTimeout(() => birthdayText?.classList.remove('visible'), DISPLAY_DURATION_MS);
+      }
+    };
+    const fallbackMsg = videoIntroOverlay.querySelector('.video-fallback');
+    videoIntroOverlay.classList.add('active');
+    videoIntro.muted = false; /* Play with sound – user gesture from click is still valid */
+    if (videoUnmute) {
+      videoUnmute.onclick = () => {
+        videoIntro.muted = !videoIntro.muted;
+        videoUnmute.classList.toggle('unmuted', !videoIntro.muted);
+        videoUnmute.innerHTML = videoIntro.muted ? '🔇' : '🔊';
+        videoUnmute.setAttribute('aria-label', videoIntro.muted ? 'Unmute video' : 'Mute video');
+      };
+    }
+    videoIntro.play()
+      .then(() => {
+        videoIntro.classList.add('playing');
+        fallbackMsg?.classList.remove('visible');
+        if (videoUnmute) videoUnmute.innerHTML = '🔊';
+      })
+      .catch(() => {
+        /* Fallback: try muted if unmuted autoplay blocked */
+        videoIntro.muted = true;
+        videoIntro.play().catch(() => {
+          videoIntro.classList.add('hidden');
+          fallbackMsg?.classList.add('visible');
+        });
+        if (videoUnmute) videoUnmute.innerHTML = '🔇';
+      });
+    videoIntro.addEventListener('timeupdate', onTimeUpdate);
+    videoIntro.onended = finish;
+    videoIntro.onerror = () => {
+      videoIntro.classList.add('hidden');
+      fallbackMsg?.classList.add('visible');
+    };
+    if (videoSkip) videoSkip.addEventListener('click', finish, { once: true });
+  });
+}
+
 /* ========== Flow: Access Granted ========== */
 async function runAccessGranted() {
   await clearTerminal();
@@ -574,7 +645,10 @@ async function init() {
 
   btnAccess.addEventListener('click', () => {
     unlockAudio(); /* Unlock for typing clicks + beep */
-    if (!btnAccess.disabled) runScan();
+    if (btnAccess.disabled) return;
+    btnAccess.disabled = true;
+    /* Play video first (while user gesture is valid = autoplay with sound) */
+    playVideoIntroSync().then(() => runScan());
   });
 
   btnAccess.addEventListener('touchend', () => unlockAudio(), { passive: true });

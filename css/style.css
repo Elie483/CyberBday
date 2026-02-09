@@ -97,6 +97,156 @@ body {
 
 .confetti-canvas.active { opacity: 1; }
 
+/* --- Video intro overlay (after Access Granted) --- */
+.video-intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 10, 12, 0.95);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.video-intro-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.video-intro {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 60px var(--glow-soft);
+}
+
+.video-intro.hidden { display: none; }
+
+.video-birthday-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 90%;
+  font-size: clamp(0.75rem, 2.5vw, 1.1rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.video-birthday-text.visible {
+  opacity: 1;
+  visibility: visible;
+  animation: birthdayTextPop 0.4s ease-out;
+}
+
+@keyframes birthdayTextPop {
+  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+  50% { transform: translate(-50%, -50%) scale(1.05); }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.video-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1.5rem;
+  max-width: 90%;
+  text-align: center;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.video-fallback.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.video-unmute {
+  position: absolute;
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  left: max(1.5rem, env(safe-area-inset-left));
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  color: var(--text-primary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.video-intro-overlay.active .video-unmute {
+  opacity: 1;
+  visibility: visible;
+}
+
+.video-unmute:hover {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: var(--accent-neon);
+}
+
+.video-unmute.unmuted {
+  opacity: 0.6;
+}
+
+.video-unmute.unmuted:hover {
+  opacity: 1;
+}
+
+.video-skip {
+  position: absolute;
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  right: max(1.5rem, env(safe-area-inset-right));
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bg-dark);
+  background: var(--accent-neon);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0.9;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.video-skip:hover {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
 /* --- Top bar: Theme + Mute (44px min touch targets) --- */
 .top-bar {
   position: fixed;
